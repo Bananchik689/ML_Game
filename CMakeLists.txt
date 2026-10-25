@@ -10,5 +10,5 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(raylib)
 
-add_executable(DodgeGame src/main.cpp src/Player.cpp src/Projectile.cpp)
+add_executable(DodgeGame src/main.cpp src/Player.cpp src/Projectile.cpp src/Game.cpp)
 target_link_libraries(DodgeGame PRIVATE raylib)

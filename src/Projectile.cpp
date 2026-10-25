@@ -9,9 +9,8 @@ void Projectile::Draw(){
     DrawRectangleRec(body,RED);
 }
 
-void Projectile::Update(){
+void Projectile::Update(float dt){
 
-    float dt = GetFrameTime();
     body.x += velocity.x * dt;
     body.y += velocity.y * dt;
 

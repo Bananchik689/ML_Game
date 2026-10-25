@@ -11,28 +11,7 @@ Rectangle Player::GetBounds() const{
     return body;
 }
 
-void Player::Update(){
-    
-    float dt = GetFrameTime();
-    Vector2 direction = {0.0f, 0.0f};
-
-    if(IsKeyDown(KEY_S))
-    {
-        direction.y += 1.0f;
-    }
-    if(IsKeyDown(KEY_W))
-    {
-        direction.y -= 1.0f;
-    }
-
-    if(IsKeyDown(KEY_D))
-    {
-        direction.x += 1.0f;
-    }
-    if(IsKeyDown(KEY_A))
-    {
-        direction.x -= 1.0f;
-    }
+void Player::Update(Vector2 direction, float dt){
 
     direction = Vector2Normalize(direction);
     body.x += direction.x * speed * dt;
