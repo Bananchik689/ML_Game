@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "GameConfig.h"
 #include "raymath.h"
 #include <cmath>
 
@@ -18,8 +19,8 @@ void Game::Update(Vector2 playerDirection , float dt){
                 float spawnX = centrX + spawnRadius * cos(angle);
                 float spawnY = centrY + spawnRadius * sin(angle);
 
-                float targetX = GetRandomValue(50, GetScreenWidth() - 50);
-                float targetY = GetRandomValue(50, GetScreenHeight() - 50);
+                float targetX = GetRandomValue(50, FILE_WIDTH - 50);
+                float targetY = GetRandomValue(50, FILE_HEIGHT - 50);
                 Vector2 bulletDirection = {targetX - spawnX, targetY - spawnY};
                 bulletDirection = Vector2Normalize(bulletDirection);
 

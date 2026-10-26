@@ -1,4 +1,5 @@
 #include "Projectile.h"
+#include "GameConfig.h"
 
 Projectile::Projectile(Rectangle initialBody, Vector2 initialVelocity)
     : body(initialBody), velocity(initialVelocity)
@@ -14,12 +15,10 @@ void Projectile::Update(float dt){
     body.x += velocity.x * dt;
     body.y += velocity.y * dt;
 
-    if(
-        (body.x + body.width > 0) &&
-        (body.x < GetScreenWidth()) &&
+    if((body.x + body.width > 0) &&
+        (body.x < FILE_WIDTH) &&
         (body.y + body.height > 0) &&
-        (body.y < GetScreenHeight())  
-    )
+        (body.y < FILE_HEIGHT))
     {
         hasEnteredScreen = true;
     }
@@ -33,9 +32,9 @@ Rectangle Projectile::GetBounds() const{
 bool Projectile::IsOffScreen() const{
     return 
             (body.x + body.width < 0) ||
-            (body.x > GetScreenWidth()) ||
+            (body.x > FILE_WIDTH) ||
             (body.y + body.height < 0) ||
-            (body.y > GetScreenHeight());  
+            (body.y > FILE_HEIGHT);  
 }
 
 bool Projectile::ShouldRemove() const{

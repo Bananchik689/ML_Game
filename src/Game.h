@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "Player.h"
 #include "Projectile.h"
+#include "GameConfig.h"
 #include <cmath>
 #include <vector>
 
@@ -14,12 +15,12 @@ class Game {
 
         float survivalTime = 0;
         float spawnTime = 0;
-        float spawnInterval = 1.0;
+        float spawnInterval = 0.15;
         bool gameOver = false;
 
-        float spawnRadius = std::hypot(GetScreenHeight() / 2.0f , GetScreenWidth() / 2.0f ) + 50;
-        int centrX = GetScreenWidth() / 2;
-        int centrY = GetScreenHeight() / 2;
+        float spawnRadius = std::hypot(FILE_WIDTH / 2.0f , FILE_HEIGHT / 2.0f ) + 50;
+        int centrX = FILE_WIDTH / 2;
+        int centrY = FILE_HEIGHT / 2;
 
     public:
         void Update(Vector2 playerDirection , float dt);

@@ -1,8 +1,22 @@
 #include "raylib.h"
 #include "Game.h"
+#include "GameConfig.h"
 #include <vector>
+#include <iostream>
+
+float RunEpisode(){
+    Game game;
+    Vector2 agentDirection = {0.0f , 0.0f};
+    while (!game.IsGameOver() && game.GetSurvivalTime() < EPISODE_TIME_LIMIT)
+    {
+        game.Update(agentDirection, SIMULATION_DT);
+    }
+    return game.GetSurvivalTime();
+}
 
 int main(){
+
+    bool simulationMode = false;
 
     InitWindow(1000,1000,"DodgeGame");
     SetTargetFPS(60);
@@ -25,86 +39,98 @@ int main(){
 
     int Record = 0;
 
+    if (simulationMode)
+    {
+        float result = RunEpisode();
+        std::cout << "\033[32mResult: " << result << "\033[0m\n";
+        return 0;
 
-    while(!WindowShouldClose()){
+    } 
+    else
+    {
 
-        if(!game.IsGameOver())
-        {   
-            float dt = GetFrameTime();
 
-            Vector2 playerDirection = {0.0f , 0.0f};
+        while(!WindowShouldClose()){
 
-            if(IsKeyDown(KEY_S))
-            {
-                playerDirection.y += 1.0f;
+            if(!game.IsGameOver())
+            {   
+                float dt = GetFrameTime();
+
+                Vector2 playerDirection = {0.0f , 0.0f};
+
+                if(IsKeyDown(KEY_S))
+                {
+                    playerDirection.y += 1.0f;
+                }
+                if(IsKeyDown(KEY_W))
+                {
+                    playerDirection.y -= 1.0f;
+                }
+
+                if(IsKeyDown(KEY_D))
+                {
+                    playerDirection.x += 1.0f;
+                }
+                if(IsKeyDown(KEY_A))
+                {
+                    playerDirection.x -= 1.0f;
+                }
+
+
+                game.Update(playerDirection,dt);        
+
             }
-            if(IsKeyDown(KEY_W))
-            {
-                playerDirection.y -= 1.0f;
-            }
 
-            if(IsKeyDown(KEY_D))
-            {
-                playerDirection.x += 1.0f;
-            }
-            if(IsKeyDown(KEY_A))
-            {
-                playerDirection.x -= 1.0f;
+
+            if(IsKeyPressed(KEY_R) && game.IsGameOver())
+            {   
+                game.Reset();          
             }
 
 
-            game.Update(playerDirection,dt);        
+            BeginDrawing();
+
+            ClearBackground(RAYWHITE);
+            game.Draw();
+
+            if(game.IsGameOver())
+            {
+                DrawText(final_text,posX,posY,size_final_text,RED);
+
+
+                Record = (Record > game.GetSurvivalTime()) ? Record : game.GetSurvivalTime();
+                const char *record_txt = TextFormat("Record: %i" , static_cast<int>(Record));
+
+                int size_record_txt = 50;
+                int width_record_txt = MeasureText(record_txt,size_record_txt);
+
+                int posXrecord = centrX - width_record_txt / 2;
+                int posYrecord = posY + 100;
+
+                DrawText(record_txt,posXrecord,posYrecord,size_record_txt,GREEN);
+            }
+
+
+            //Time text
+
+            const char *time_txt = TextFormat("Time: %i" , static_cast<int>(game.GetSurvivalTime()));
+
+            int size_time_txt = 30;
+            int width_time_txt = MeasureText(time_txt,size_time_txt);
+
+            int posXtime = centrX - width_time_txt / 2;
+            int posYtime = 15;
+
+            DrawText(time_txt, posXtime, posYtime, size_time_txt, BLACK);
+            
+
+            EndDrawing();
 
         }
 
+        CloseWindow();
 
-        if(IsKeyPressed(KEY_R) && game.IsGameOver())
-        {   
-            game.Reset();          
-        }
-
-
-        BeginDrawing();
-
-        ClearBackground(RAYWHITE);
-        game.Draw();
-
-        if(game.IsGameOver())
-        {
-            DrawText(final_text,posX,posY,size_final_text,RED);
-
-
-            Record = (Record > game.GetSurvivalTime()) ? Record : game.GetSurvivalTime();
-            const char *record_txt = TextFormat("Record: %i" , static_cast<int>(Record));
-
-            int size_record_txt = 50;
-            int width_record_txt = MeasureText(record_txt,size_record_txt);
-
-            int posXrecord = centrX - width_record_txt / 2;
-            int posYrecord = posY + 100;
-
-            DrawText(record_txt,posXrecord,posYrecord,size_record_txt,GREEN);
-        }
-
-
-        //Time text
-
-        const char *time_txt = TextFormat("Time: %i" , static_cast<int>(game.GetSurvivalTime()));
-
-        int size_time_txt = 30;
-        int width_time_txt = MeasureText(time_txt,size_time_txt);
-
-        int posXtime = centrX - width_time_txt / 2;
-        int posYtime = 15;
-
-        DrawText(time_txt, posXtime, posYtime, size_time_txt, BLACK);
-        
-
-        EndDrawing();
-
+        return 0;
     }
 
-    CloseWindow();
-
-    return 0;
 }

@@ -1,4 +1,5 @@
 #include "Player.h"
+#include "GameConfig.h"
 #include "raymath.h"
 
 void Player::Draw(){
@@ -23,20 +24,20 @@ void Player::Update(Vector2 direction, float dt){
     {
         body.y = 0;
     }
-
-    if(body.y > GetScreenHeight() - body.height)
-    {
-        body.y = GetScreenHeight() - body.height;
-    }
-
-    if(body.x > GetScreenWidth() - body.width)
-    {
-        body.x = GetScreenWidth() - body.width;
-    }
-
-    if(body.x < 0)
+    
+        if(body.x < 0)
     {
         body.x = 0;
+    }
+
+    if(body.y > FILE_HEIGHT - body.height)
+    {
+        body.y = FILE_HEIGHT - body.height;
+    }
+
+    if(body.x > FILE_WIDTH - body.width)
+    {
+        body.x = FILE_WIDTH - body.width;
     }
 
 }
