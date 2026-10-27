@@ -91,3 +91,17 @@ void Game::Draw(){
         }
         player.Draw();
 }
+
+Rectangle Game::PlayerBound() const{
+    return player.GetBounds();
+}
+
+std::vector<Rectangle> Game::BulletsBound() const{
+    std::vector<Rectangle> bulletsBound;
+    for (int it = 0 ; it < bullets.size() ; it++)
+    {   
+        Rectangle bound = bullets[it].GetBounds();
+        bulletsBound.push_back(bound);
+    } 
+    return bulletsBound;
+}

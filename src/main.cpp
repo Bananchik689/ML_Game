@@ -4,11 +4,57 @@
 #include <vector>
 #include <iostream>
 
+Vector2 ObjectCentr(Rectangle object){
+    float centrX = object.x + (object.width)/2;
+    float centrY = object.y + (object.height)/2;
+    return {centrX , centrY};
+}
+
+float Dist(Vector2 player , Vector2 bullet){
+    float dist = (player.x - bullet.x)*(player.x - bullet.x) + (player.y - bullet.y)*(player.y - bullet.y);
+    return dist;
+}
+
+Vector2 ChooseDirection(const Game& game){
+
+    Vector2 agentDirection = {0.0f , 0.0f};
+    Vector2 playerCentr = ObjectCentr(game.PlayerBound());
+
+    float minDist = -1.0f;
+    Rectangle nearestBullet;
+
+    for (const Rectangle& bullet : game.BulletsBound())
+    {
+        Vector2 bulletCentr = ObjectCentr(bullet);
+        float dist = Dist(playerCentr, bulletCentr);
+
+        if (minDist > dist || minDist < 0)
+        {   
+            minDist = dist;
+            nearestBullet = bullet;
+        }
+    }
+
+    if (minDist != -1.0f)
+    {
+        Vector2 bulletCentr = ObjectCentr(nearestBullet);
+
+        agentDirection.x = playerCentr.x - bulletCentr.x;
+        agentDirection.y = playerCentr.y - bulletCentr.y;
+
+    }
+    
+    return agentDirection;
+    
+
+}
+
 float RunEpisode(){
     Game game;
     Vector2 agentDirection = {0.0f , 0.0f};
     while (!game.IsGameOver() && game.GetSurvivalTime() < EPISODE_TIME_LIMIT)
-    {
+    {   
+        agentDirection = ChooseDirection(game);
         game.Update(agentDirection, SIMULATION_DT);
     }
     return game.GetSurvivalTime();
@@ -17,6 +63,7 @@ float RunEpisode(){
 int main(){
 
     bool simulationMode = false;
+    bool agentMode = true;
 
     InitWindow(1000,1000,"DodgeGame");
     SetTargetFPS(60);
@@ -55,27 +102,30 @@ int main(){
             if(!game.IsGameOver())
             {   
                 float dt = GetFrameTime();
-
                 Vector2 playerDirection = {0.0f , 0.0f};
+                if (!agentMode)
+                {
+                    if(IsKeyDown(KEY_S))
+                    {
+                        playerDirection.y += 1.0f;
+                    }
+                    if(IsKeyDown(KEY_W))
+                    {
+                        playerDirection.y -= 1.0f;
+                    }
 
-                if(IsKeyDown(KEY_S))
+                    if(IsKeyDown(KEY_D))
+                    {
+                        playerDirection.x += 1.0f;
+                    }
+                    if(IsKeyDown(KEY_A))
+                    {
+                        playerDirection.x -= 1.0f;
+                    }
+                } else
                 {
-                    playerDirection.y += 1.0f;
+                    playerDirection = ChooseDirection(game);
                 }
-                if(IsKeyDown(KEY_W))
-                {
-                    playerDirection.y -= 1.0f;
-                }
-
-                if(IsKeyDown(KEY_D))
-                {
-                    playerDirection.x += 1.0f;
-                }
-                if(IsKeyDown(KEY_A))
-                {
-                    playerDirection.x -= 1.0f;
-                }
-
 
                 game.Update(playerDirection,dt);        
 

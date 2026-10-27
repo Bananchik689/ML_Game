@@ -14,5 +14,5 @@ class Player {
         void Draw();
         void Update(Vector2 direction, float dt);
         void Restart();
-        Rectangle GetBounds() const;
+        Rectangle GetBounds() const;  
 };
