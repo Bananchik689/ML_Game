@@ -1,146 +1,27 @@
 #include "raylib.h"
+#include "Agent.h"
 #include "Game.h"
 #include "GameConfig.h"
-#include <vector>
 #include <iostream>
 #include <fstream>
 #include <random>
-
-
-Vector2 ObjectCentr(Rectangle object)
-{
-    float centrX = object.x + (object.width)/2;
-    float centrY = object.y + (object.height)/2;
-    return {centrX , centrY};
-}
-
-
-
-float Dist(Vector2 object1 , Vector2 object2)
-{
-    float dist = (object1.x - object2.x)*(object1.x - object2.x) + (object1.y - object2.y)*(object1.y - object2.y);
-    return dist;
-}
-
-
-Vector2 ChooseDirection(const Game& game, float centerWeight)
-{
-
-    Vector2 agentDirection = {0.0f , 0.0f};
-    Vector2 playerCentr = ObjectCentr(game.PlayerBound());
-
-    // Find nearest projectile
-
-    float minDist = -1.0f;
-    Rectangle nearestBullet;
-
-    for (const Rectangle& bullet : game.BulletsBound())
-    {
-        Vector2 bulletCentr = ObjectCentr(bullet);
-        float dist = Dist(playerCentr, bulletCentr);
-
-        if (minDist > dist || minDist < 0)
-        {   
-            minDist = dist;
-            nearestBullet = bullet;
-        }
-    }
-
-    if (minDist != -1.0f)
-    {
-        Vector2 bulletCentr = ObjectCentr(nearestBullet);
-
-        agentDirection.x = playerCentr.x - bulletCentr.x;
-        agentDirection.y = playerCentr.y - bulletCentr.y;
-
-    }
-
-    // Correct direction by weights
-    
-    Vector2 fieldCentr = {FILE_WIDTH/2 , FILE_HEIGHT/2};
-    Vector2 toCentr = {fieldCentr.x - playerCentr.x , fieldCentr.y - playerCentr.y};
-
-    agentDirection = 
-    {
-        agentDirection.x + toCentr.x * centerWeight,
-        agentDirection.y + toCentr.y * centerWeight
-    };
-
-    
-    return agentDirection;
-    
-
-}
-
-
-float RunEpisode(float centrWeight , unsigned int seed)
-{   
-    SetRandomSeed(seed);
-
-    Game game;
-    Vector2 agentDirection = {0.0f , 0.0f};
-
-    while (!game.IsGameOver() && game.GetSurvivalTime() < EPISODE_TIME_LIMIT)
-    {    
-        agentDirection = ChooseDirection(game, centrWeight);
-        game.Update(agentDirection, SIMULATION_DT);
-    }
-
-    return game.GetSurvivalTime();
-}
-
-
-float EvaluateAgent(float centrWeight, int attemps)
-{
-    float avarageTime = 0.0f;
-
-    for(int it = 0 ; it < attemps ; it++)
-    {   
-        unsigned int seed = it;
-        float result = RunEpisode(centrWeight, seed);
-        //std::cout << "\033[32mResult: " << result << "\033[0m\n";
-        avarageTime += result;
-    }
-
-    avarageTime /= attemps;
-    return avarageTime;
-}
-
-float TestEvaluateAgent(float centrWeight, int attemps)
-{
-    float avarageTime = 0.0f;
-
-    for(int it = 0 ; it < attemps ; it++)
-    {   
-        unsigned int seed = it+100;
-        float result = RunEpisode(centrWeight, seed);
-        //std::cout << "\033[32mResult: " << result << "\033[0m\n";
-        avarageTime += result;
-    }
-
-    avarageTime /= attemps;
-    return avarageTime;
-}
-
 
 int main(){
 
     InitWindow(1000,1000,"DodgeGame");
     SetTargetFPS(60);
 
-    bool simulationMode = false;
+    bool simulationMode = true;
     bool agentMode = true;
 
     Game game;
 
     //read the best weight from file
-
     std::ifstream readFile("best_agent.txt");
     float weight;
     readFile >> weight;
 
     //Text for the end of the game
-
     const char *final_text = "GAME OVER";
     
     int centrX = GetScreenWidth() / 2;
@@ -158,16 +39,14 @@ int main(){
     if (simulationMode)
     {   
         int attemps = 100;
-
-        float centrWeight = 0.0f;
-
-        float avarageTime = EvaluateAgent(centrWeight , attemps);
-        float bestTime = avarageTime;
-
-        centrWeight = 0.25;
+        float centrWeight = 0.25f;
         float bestWeight = centrWeight;
 
+        //Tetsting zero weight
+        float avarageTime = EvaluateAgent(0.0f, attemps);
+        float bestTime = avarageTime;
 
+        //random devation
         std::mt19937 mutationGenerator(42);
         std::uniform_real_distribution<float> mutationDistribution(-0.1f, 0.1f);
 
@@ -220,9 +99,13 @@ int main(){
                 float dt = GetFrameTime();
                 Vector2 playerDirection = {0.0f , 0.0f};
 
-                if (!agentMode)
-                {
-                    if(IsKeyDown(KEY_S))
+                if (agentMode)
+                {   
+                    playerDirection = ChooseDirection(game, weight);
+                }
+                else
+                {  
+                      if(IsKeyDown(KEY_S))
                     {
                         playerDirection.y += 1.0f;
                     }
@@ -239,11 +122,6 @@ int main(){
                     {
                         playerDirection.x -= 1.0f;
                     }
-                }
-
-                else
-                {   
-                    playerDirection = ChooseDirection(game, weight);
                 }
 
                 game.Update(playerDirection,dt);        
