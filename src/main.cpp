@@ -8,9 +8,6 @@
 
 int main(){
 
-    InitWindow(1000,1000,"DodgeGame");
-    SetTargetFPS(60);
-
     bool simulationMode = true;
     bool agentMode = true;
 
@@ -19,22 +16,13 @@ int main(){
     //read the best weight from file
     std::ifstream readFile("best_agent.txt");
     float weight;
-    readFile >> weight;
 
-    //Text for the end of the game
-    const char *final_text = "GAME OVER";
-    
-    int centrX = GetScreenWidth() / 2;
-    int centrY = GetScreenHeight() / 2;
+    if (!(readFile >> weight) && !(simulationMode) && agentMode)
+    {   
+        std::cout << "Error! The parameter file cant read." << "\n";
+        return 0;
+    }
 
-    int size_final_text = 90;
-    int width_final_text = MeasureText(final_text , size_final_text);
-
-    int posX = centrX - width_final_text/2;
-    int posY = centrY - size_final_text/2;
-
-
-    int Record = 0;
 
     if (simulationMode)
     {   
@@ -42,8 +30,7 @@ int main(){
         float centrWeight = 0.25f;
         float bestWeight = centrWeight;
 
-        //Tetsting zero weight
-        float avarageTime = EvaluateAgent(0.0f, attemps);
+        float avarageTime = EvaluateAgent(centrWeight, attemps);
         float bestTime = avarageTime;
 
         //random devation
@@ -91,6 +78,23 @@ int main(){
 
     else
     {
+
+        InitWindow(1000,1000,"DodgeGame");
+        SetTargetFPS(60);
+
+        int Record = 0;
+
+        //Text for the end of the game
+        const char *final_text = "GAME OVER";
+        
+        int centrX = GetScreenWidth() / 2;
+        int centrY = GetScreenHeight() / 2;
+
+        int size_final_text = 90;
+        int width_final_text = MeasureText(final_text , size_final_text);
+
+        int posX = centrX - width_final_text/2;
+        int posY = centrY - size_final_text/2;
 
         while(!WindowShouldClose()){
 
