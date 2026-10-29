@@ -3,22 +3,31 @@
 #include "GameConfig.h"
 #include <vector>
 #include <iostream>
+#include <random>
 
-Vector2 ObjectCentr(Rectangle object){
+Vector2 ObjectCentr(Rectangle object)
+{
     float centrX = object.x + (object.width)/2;
     float centrY = object.y + (object.height)/2;
     return {centrX , centrY};
 }
 
-float Dist(Vector2 player , Vector2 bullet){
-    float dist = (player.x - bullet.x)*(player.x - bullet.x) + (player.y - bullet.y)*(player.y - bullet.y);
+
+
+float Dist(Vector2 object1 , Vector2 object2)
+{
+    float dist = (object1.x - object2.x)*(object1.x - object2.x) + (object1.y - object2.y)*(object1.y - object2.y);
     return dist;
 }
 
-Vector2 ChooseDirection(const Game& game){
+
+Vector2 ChooseDirection(const Game& game, float centerWeight)
+{
 
     Vector2 agentDirection = {0.0f , 0.0f};
     Vector2 playerCentr = ObjectCentr(game.PlayerBound());
+
+    // Find nearest projectile
 
     float minDist = -1.0f;
     Rectangle nearestBullet;
@@ -43,30 +52,82 @@ Vector2 ChooseDirection(const Game& game){
         agentDirection.y = playerCentr.y - bulletCentr.y;
 
     }
+
+    // Correct direction by weights
+    
+    Vector2 fieldCentr = {FILE_WIDTH/2 , FILE_HEIGHT/2};
+    Vector2 toCentr = {fieldCentr.x - playerCentr.x , fieldCentr.y - playerCentr.y};
+
+    agentDirection = 
+    {
+        agentDirection.x + toCentr.x * centerWeight,
+        agentDirection.y + toCentr.y * centerWeight
+    };
+
     
     return agentDirection;
     
 
 }
 
-float RunEpisode(){
+
+float RunEpisode(float centrWeight , unsigned int seed)
+{   
+    SetRandomSeed(seed);
+
     Game game;
     Vector2 agentDirection = {0.0f , 0.0f};
+
     while (!game.IsGameOver() && game.GetSurvivalTime() < EPISODE_TIME_LIMIT)
-    {   
-        agentDirection = ChooseDirection(game);
+    {    
+        agentDirection = ChooseDirection(game, centrWeight);
         game.Update(agentDirection, SIMULATION_DT);
     }
+
     return game.GetSurvivalTime();
 }
 
-int main(){
 
-    bool simulationMode = false;
-    bool agentMode = true;
+float EvaluateAgent(float centrWeight, int attemps)
+{
+    float avarageTime = 0.0f;
+
+    for(int it = 0 ; it < attemps ; it++)
+    {   
+        unsigned int seed = it;
+        float result = RunEpisode(centrWeight, seed);
+        //std::cout << "\033[32mResult: " << result << "\033[0m\n";
+        avarageTime += result;
+    }
+
+    avarageTime /= attemps;
+    return avarageTime;
+}
+
+float TestEvaluateAgent(float centrWeight, int attemps)
+{
+    float avarageTime = 0.0f;
+
+    for(int it = 0 ; it < attemps ; it++)
+    {   
+        unsigned int seed = it+100;
+        float result = RunEpisode(centrWeight, seed);
+        //std::cout << "\033[32mResult: " << result << "\033[0m\n";
+        avarageTime += result;
+    }
+
+    avarageTime /= attemps;
+    return avarageTime;
+}
+
+
+int main(){
 
     InitWindow(1000,1000,"DodgeGame");
     SetTargetFPS(60);
+
+    bool simulationMode = true;
+    bool agentMode = true;
 
     Game game;
 
@@ -87,15 +148,60 @@ int main(){
     int Record = 0;
 
     if (simulationMode)
-    {
-        float result = RunEpisode();
-        std::cout << "\033[32mResult: " << result << "\033[0m\n";
-        return 0;
+    {   
+        int attemps = 100;
 
-    } 
+        float centrWeight = 0.0f;
+
+        float avarageTime = EvaluateAgent(centrWeight , attemps);
+        float bestTime = avarageTime;
+
+        centrWeight = 0.25;
+        float bestWeight = centrWeight;
+
+
+        std::mt19937 mutationGenerator(42);
+        std::uniform_real_distribution<float> mutationDistribution(-0.1f, 0.1f);
+
+
+        for (int it = 0 ; it < 20 ; it++)
+        {   
+            float mutation = mutationDistribution(mutationGenerator);
+            centrWeight = bestWeight + mutation;
+            avarageTime = EvaluateAgent(centrWeight , attemps);
+         
+            if (avarageTime > bestTime)
+            {
+                bestTime = avarageTime;
+                bestWeight = centrWeight; 
+            }
+
+        }
+
+        // compare the average difference between generations
+
+        int testAttemps = 50;
+            
+        float gen0Weight = 0.0f;
+        float gen1Weight = bestWeight;
+
+        float gen0Time = TestEvaluateAgent(gen0Weight , testAttemps);
+        float gen1Time = TestEvaluateAgent(gen1Weight , testAttemps);
+
+        std::cout << "\n\033[36mAvavrage generation0 time: " << gen0Time << "\033[0m\n";
+        std::cout << "\033[32mWeight: " << gen0Weight << "\033[0m\n";
+        
+        std::cout << "\n\033[36mAvavrage generation1 time: " << gen1Time << "\033[0m\n";
+        std::cout << "\033[32mWeight: " << gen1Weight << "\033[0m\n";
+
+
+
+
+    }
+
+
     else
     {
-
 
         while(!WindowShouldClose()){
 
@@ -103,6 +209,7 @@ int main(){
             {   
                 float dt = GetFrameTime();
                 Vector2 playerDirection = {0.0f , 0.0f};
+
                 if (!agentMode)
                 {
                     if(IsKeyDown(KEY_S))
@@ -122,9 +229,12 @@ int main(){
                     {
                         playerDirection.x -= 1.0f;
                     }
-                } else
-                {
-                    playerDirection = ChooseDirection(game);
+                }
+
+                else
+                {   
+                    float centrWeight = 0.14f;
+                    playerDirection = ChooseDirection(game, centrWeight);
                 }
 
                 game.Update(playerDirection,dt);        
@@ -147,6 +257,8 @@ int main(){
             {
                 DrawText(final_text,posX,posY,size_final_text,RED);
 
+
+                // Record Text
 
                 Record = (Record > game.GetSurvivalTime()) ? Record : game.GetSurvivalTime();
                 const char *record_txt = TextFormat("Record: %i" , static_cast<int>(Record));
@@ -179,8 +291,8 @@ int main(){
         }
 
         CloseWindow();
-
-        return 0;
     }
+
+    return 0;
 
 }

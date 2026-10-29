@@ -15,7 +15,7 @@ class Game {
 
         float survivalTime = 0;
         float spawnTime = 0;
-        float spawnInterval = 0.1;
+        float spawnInterval = 0.2;
         bool gameOver = false;
 
         float spawnRadius = std::hypot(FILE_WIDTH / 2.0f , FILE_HEIGHT / 2.0f ) + 50;

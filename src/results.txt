@@ -1,0 +1,8 @@
+Test info: spawnInterval = 0.2 , attemps = 50 , seed = 100-149 , SIMULATION_DT = 1.0f / 60.0f , EPISODE_TIME_LIMIT = 100.0f 
+
+Avavrage generation0 time: 13.7899
+Weight: 0
+
+Avavrage generation1 time: 27.6218
+Weight: 0.0873106
+
