@@ -3,7 +3,9 @@
 #include "GameConfig.h"
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <random>
+
 
 Vector2 ObjectCentr(Rectangle object)
 {
@@ -126,10 +128,16 @@ int main(){
     InitWindow(1000,1000,"DodgeGame");
     SetTargetFPS(60);
 
-    bool simulationMode = true;
+    bool simulationMode = false;
     bool agentMode = true;
 
     Game game;
+
+    //read the best weight from file
+
+    std::ifstream readFile("best_agent.txt");
+    float weight;
+    readFile >> weight;
 
     //Text for the end of the game
 
@@ -194,8 +202,10 @@ int main(){
         std::cout << "\n\033[36mAvavrage generation1 time: " << gen1Time << "\033[0m\n";
         std::cout << "\033[32mWeight: " << gen1Weight << "\033[0m\n";
 
+        // writes the best weight to a file
 
-
+        std::ofstream writeFile("best_agent.txt");
+        writeFile << bestWeight << '\n';
 
     }
 
@@ -233,8 +243,7 @@ int main(){
 
                 else
                 {   
-                    float centrWeight = 0.14f;
-                    playerDirection = ChooseDirection(game, centrWeight);
+                    playerDirection = ChooseDirection(game, weight);
                 }
 
                 game.Update(playerDirection,dt);        
